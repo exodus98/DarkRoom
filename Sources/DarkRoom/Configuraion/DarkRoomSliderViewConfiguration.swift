@@ -62,14 +62,14 @@ public struct DarkRoomSliderViewDefaultConfiguration: DarkRoomSliderViewConfigur
     public init(
         thumbViewConfiguration: DarkRoomThumbViewConfiguration = DarkRoomThumbViewDefaultConfiguration(),
         progressBarBackgroundColor: UIColor? = DarkRoomAsset.Colors.whiteHint.color.withAlphaComponent(0.5),
-        primaryProgressColor: UIColor? = DarkRoomAsset.Colors.primaryWhite.color,
+        primaryProgressColor: UIColor? = UIColor(red: 35.0/255.0, green: 127.0/255.0, blue: 1.0, alpha: 1.0),
         secondaryProgressColor: UIColor? = DarkRoomAsset.Colors.whiteHint.color.withAlphaComponent(0.5),
         progressBarHeight: CGFloat = 6,
         errorColor: UIColor = DarkRoomAsset.Colors.brandRed.color
     ) {
         self.thumbViewConfiguration = thumbViewConfiguration
         self.progressBarBackgroundColor = progressBarBackgroundColor
-        self.primaryProgressColor = primaryProgressColor
+        self.primaryProgressColor = UIColor(red: 35.0/255.0, green: 127.0/255.0, blue: 1.0, alpha: 1.0)
         self.secondaryProgressColor = secondaryProgressColor
         self.progressBarHeight = progressBarHeight
         self.errorColor = errorColor

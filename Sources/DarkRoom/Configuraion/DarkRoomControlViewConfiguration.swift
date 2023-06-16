@@ -41,6 +41,12 @@ public protocol DarkRoomControlViewConfiguration {
     var pauseImage: UIImage { get }
     
     var errorColor: UIColor { get }
+    
+    var muteAudioImage: UIImage? { get set }
+    
+    var unmuteAudioImage: UIImage? { get set }
+    
+    var useMute: Bool { get set }
 }
 
 // MARK: - Implementation
@@ -59,13 +65,22 @@ public struct DarkRoomControlViewDefaultConfiguration: DarkRoomControlViewConfig
     
     public var errorColor: UIColor
     
+    public var muteAudioImage: UIImage?
+    
+    public var unmuteAudioImage: UIImage?
+    
+    public var useMute: Bool
+    
     public init(
         progressViewConfiguration: DarkRoomSliderViewConfiguration = DarkRoomSliderViewDefaultConfiguration(),
         timeStatusConfiguration: DarkRoomTimeStatusConfiguration = DarkRoomTimeStatusDefaultConfiguration(),
         controlViewBackgroundColor: UIColor? = .clear,
         playImage: UIImage = DarkRoomAsset.Images.play.image!,
         pauseImage: UIImage = DarkRoomAsset.Images.pause.image!,
-        errorColor: UIColor = DarkRoomAsset.Colors.brandRed.color
+        errorColor: UIColor = DarkRoomAsset.Colors.brandRed.color,
+        muteAudioImage: UIImage? = nil,
+        unmuteAudioImage: UIImage? = nil,
+        useMute: Bool = false
     ) {
         self.progressViewConfiguration = progressViewConfiguration
         self.timeStatusConfiguration = timeStatusConfiguration
@@ -73,5 +88,8 @@ public struct DarkRoomControlViewDefaultConfiguration: DarkRoomControlViewConfig
         self.playImage = playImage
         self.pauseImage = pauseImage
         self.errorColor = errorColor
+        self.muteAudioImage = muteAudioImage
+        self.unmuteAudioImage = unmuteAudioImage
+        self.useMute = useMute
     }    
 }

@@ -32,7 +32,7 @@ public protocol DarkRoomVideoPlayerControllerConfiguration {
     
     var loadingViewConfiguration: DarkRoomLoadingViewConfiguration { get }
     
-    var controlViewConfiguration: DarkRoomControlViewConfiguration { get }
+    var controlViewConfiguration: DarkRoomControlViewConfiguration { get set }
     
     var videoPlayerBackgroudColor: UIColor { get }
     

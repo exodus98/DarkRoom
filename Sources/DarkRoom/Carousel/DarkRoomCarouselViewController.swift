@@ -26,6 +26,12 @@
 
 import UIKit
 
+public struct DarkRoomMediaUserInfo {
+    let nickname: String
+    let timeString: String
+    let imageUrl: String
+}
+
 /// A PageController class which is able to show image or video
 public final class DarkRoomCarouselViewController: UIPageViewController {
 
@@ -63,7 +69,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         navBar.overrideUserInterfaceStyle = .dark
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .clear
+        appearance.backgroundColor = .black
         appearance.shadowColor = .clear
         navBar.standardAppearance = appearance
         navBar.scrollEdgeAppearance = appearance
@@ -72,6 +78,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         navBar.barTintColor = .clear
         navBar.setBackgroundImage(UIImage(), for: .default)
         navBar.shadowImage = UIImage()
+        navBar.alpha = 0.5
         return navBar
     }()
     
@@ -90,6 +97,9 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     
     private var configuration: DarkRoomCarouselConfiguration
     
+    // MARK: UserInfo
+    private let userInfo: DarkRoomMediaUserInfo
+    
     // MARK: - LifeCycle
     
     public init(
@@ -97,7 +107,10 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         imageDelegate: DarkRoomCarouselDelegate? = nil,
         imageLoader: DarkRoomImageLoader,
         initialIndex: Int = 0,
-        configuration: DarkRoomCarouselConfiguration = DarkRoomCarouselDefaultConfiguration()
+        configuration: DarkRoomCarouselConfiguration = DarkRoomCarouselDefaultConfiguration(),
+        nickname: String = "",
+        timeString: String = "",
+        imageUrl: String = ""
     ) {
         self.initialIndex = initialIndex
         self.displayedIndex = initialIndex
@@ -105,6 +118,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         self.mediaDelegate = imageDelegate
         self.imageLoader = imageLoader
         self.configuration = configuration
+        self.userInfo = DarkRoomMediaUserInfo(nickname: nickname, timeString: timeString, imageUrl: imageUrl)
         let pageOptions = [UIPageViewController.OptionsKey.interPageSpacing: 20]
 
         super.init(
@@ -285,7 +299,10 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDataSource {
             imagePlaceholder: data.imagePlaceholder,
             imageLoader: imageLoader,
             player: player,
-            configuration: configuration.videoPlayerControllerConfiguration
+            configuration: configuration.videoPlayerControllerConfiguration,
+            nickname: userInfo.nickname,
+            timeString: userInfo.timeString,
+            imageUrl: userInfo.imageUrl
         )
 
         player.load(media: mediaItem, autostart: true, position: 0)

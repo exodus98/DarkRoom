@@ -47,11 +47,19 @@ internal final class DarkRoomPlayerControlView: UIView, DarkRoomPlayerControlVie
         didPlayPauseButtonDidTouchUpInsideSubject.share().eraseToAnyPublisher()
     }
     
+    private var didMuteButtonDidTouchUpInsideSubject: PassthroughSubject<Void,Never> = .init()
+    
+    internal var didMuteButtonDidTouchUpInside: AnyPublisher<Void,Never> {
+        didMuteButtonDidTouchUpInsideSubject.share().eraseToAnyPublisher()
+    }
+    
     // MARK: - Views
     
     private let stackview = UIStackView()
     
     private let controlButton = UIButton()
+    
+    private let muteButton = UIButton()
     
     internal private(set) lazy var slider: DarkRoomPlayerSliderView = DarkRoomPlayerSliderView(configuration: configuration.progressViewConfiguration)
     
@@ -66,6 +74,14 @@ internal final class DarkRoomPlayerControlView: UIView, DarkRoomPlayerControlVie
             controlButton.image(for: .normal)
         } set {
             controlButton.setImage(newValue, for: .normal)
+        }
+    }
+    
+    internal var audioImage: UIImage? {
+        get {
+            muteButton.image(for: .normal)
+        } set {
+            muteButton.setImage(newValue, for: .normal)
         }
     }
     
@@ -106,10 +122,30 @@ internal final class DarkRoomPlayerControlView: UIView, DarkRoomPlayerControlVie
     private func prepare() {
         autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.semanticContentAttribute = .forceLeftToRight
+        prepareBackgroundView()
         prepareControlButton()
         prepareStackView()
         prepareSlider()
-        prepareTimeLabel()
+        guard configuration.useMute else {
+            prepareTimeLabel()
+            return
+        }
+        prepareMuteButton()
+    }
+    
+    private func prepareBackgroundView() {
+        let darkBackground = UIView()
+        darkBackground.translatesAutoresizingMaskIntoConstraints = false
+        darkBackground.backgroundColor = .black
+        darkBackground.alpha = 0.6
+        addSubview(darkBackground)
+        
+        NSLayoutConstraint.activate([
+            darkBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            darkBackground.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+            darkBackground.topAnchor.constraint(equalTo: topAnchor, constant: 0),
+            darkBackground.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0)
+        ])
     }
 
     private func prepareControlButton() {
@@ -118,7 +154,7 @@ internal final class DarkRoomPlayerControlView: UIView, DarkRoomPlayerControlVie
         controlButton.contentHorizontalAlignment = .fill
         controlButton.contentVerticalAlignment = .fill
         controlButton.imageView?.contentMode = .scaleAspectFit
-        controlButton.addTarget(self, action: #selector(buttonDidTapped), for: .primaryActionTriggered)
+        controlButton.addTarget(self, action: #selector(playButtonTapped), for: .primaryActionTriggered)
         controlButton.semanticContentAttribute = .forceLeftToRight
         self.addSubview(controlButton)
 
@@ -132,7 +168,7 @@ internal final class DarkRoomPlayerControlView: UIView, DarkRoomPlayerControlVie
 
     private func prepareStackView() {
         stackview.semanticContentAttribute = .forceLeftToRight
-        stackview.spacing = 8
+        stackview.spacing = 16
         stackview.alignment = .fill
         stackview.axis = .horizontal
         stackview.distribution = .fill
@@ -150,6 +186,30 @@ internal final class DarkRoomPlayerControlView: UIView, DarkRoomPlayerControlVie
     private func prepareSlider() {
         slider.translatesAutoresizingMaskIntoConstraints = false
         stackview.addArrangedSubview(slider)
+    }
+    
+    private func prepareMuteButton() {
+        muteButtonToUnmute()
+        muteButton.translatesAutoresizingMaskIntoConstraints = false
+        muteButton.contentHorizontalAlignment = .fill
+        muteButton.contentVerticalAlignment = .fill
+        muteButton.imageView?.contentMode = .scaleAspectFit
+        muteButton.addTarget(self, action: #selector(muteButtonTapped), for: .primaryActionTriggered)
+       
+        stackview.addArrangedSubview(muteButton)
+
+        NSLayoutConstraint.activate([
+            muteButton.heightAnchor.constraint(equalToConstant: 36),
+            muteButton.widthAnchor.constraint(equalToConstant: 36)
+        ])
+    }
+    
+    func muteButtonToMute() {
+        muteButton.setImage(configuration.muteAudioImage, for: .normal)
+    }
+    
+    func muteButtonToUnmute() {
+        muteButton.setImage(configuration.unmuteAudioImage, for: .normal)
     }
     
     private func prepareTimeLabel() {
@@ -177,8 +237,14 @@ internal final class DarkRoomPlayerControlView: UIView, DarkRoomPlayerControlVie
     }
 
     @objc
-    fileprivate func buttonDidTapped(_ button: UIButton) {
+    fileprivate func playButtonTapped(_ button: UIButton) {
         delegate?.controlView(self, didTouchUpInside: button)
         didPlayPauseButtonDidTouchUpInsideSubject.send()
+    }
+    
+    @objc
+    fileprivate func muteButtonTapped(_ button: UIButton) {
+        delegate?.controlView(self, didTouchUpInside: button)
+        didMuteButtonDidTouchUpInsideSubject.send()
     }
 }
