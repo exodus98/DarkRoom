@@ -74,6 +74,19 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
     
     private var configuration: DarkRoomImageControllerConfiguration
     
+    private var infoViewBottomLayout: NSLayoutConstraint!
+        
+    private var infoView: MediaUserInfoView?
+    
+    private let userInfo: DarkRoomMediaUserInfo
+    
+    private var isShowingControls: Bool {
+        didSet {
+            guard oldValue != isShowingControls else { return }
+            changeControlsVisibilty(with: oldValue)
+        }
+    }
+    
     // MARK: - LifeCycle
 
     internal init(
@@ -81,7 +94,10 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
         imageURL: URL,
         imagePlaceholder: UIImage,
         imageLoader: DarkRoomImageLoader,
-        configuration: DarkRoomImageControllerConfiguration = DarkRoomImageControllerDeafultConfiguration()
+        configuration: DarkRoomImageControllerConfiguration = DarkRoomImageControllerDeafultConfiguration(),
+        nickname: String = "",
+        timeString: String = "",
+        imageUrl: String = ""
     ) {
         self.index = index
         self.imageURL = imageURL
@@ -91,6 +107,9 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
         self.lastLocation = .zero
         self.isAnimating = false
         self.maxZoomScale = 1.0
+        self.isShowingControls = true
+        self.userInfo = DarkRoomMediaUserInfo(nickname: nickname, timeString: timeString, imageUrl: imageUrl)
+        self.infoView = MediaUserInfoView(userInfo: self.userInfo, imageLoader: imageLoader, type: 10)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -138,8 +157,28 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
 
     internal override func viewDidLoad() {
         super.viewDidLoad()
+        self.additionalSafeAreaInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         loadImage()
+        prepareInfoView()
+        guard let infoView else { return }
+        view.bringSubviewToFront(infoView)
+        
         addGestureRecognizers()
+    }
+    
+    private func prepareInfoView() {
+        guard let infoView else { return }
+        infoView.translatesAutoresizingMaskIntoConstraints = false
+        infoView.isHidden = false
+        view.addSubview(infoView)
+
+        infoViewBottomLayout = infoView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0)
+        NSLayoutConstraint.activate([
+            infoView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
+            infoView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
+            infoViewBottomLayout,
+            infoView.heightAnchor.constraint(equalToConstant: 72)
+        ])
     }
     
     private func loadImage() {
@@ -237,11 +276,25 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
     
     @objc
     private func didSingleTap(_ recognizer: UITapGestureRecognizer) {
-        
-        let currentNavAlpha = self.navBar?.alpha ?? 0.0
-        UIView.animate(withDuration: 0.235) {
-            self.navBar?.alpha = currentNavAlpha > 0.5 ? 0.0 : 1.0
+        self.isShowingControls.toggle()
+    }
+    
+    private func changeControlsVisibilty(with isShowingControls: Bool) {
+        UIView.animate(withDuration: 0.235, delay: 0, options: [.curveEaseInOut]) { [weak self] in
+            guard let strongSelf = self else { return }
+            guard !strongSelf.userInfo.nickname.isEmpty else {
+                strongSelf.updateAlpha()
+                return
+            }
+            strongSelf.infoViewBottomLayout.constant = isShowingControls ? 200 : 0
+            strongSelf.view.layoutIfNeeded()
+            strongSelf.updateAlpha()
         }
+    }
+    
+    private func updateAlpha() {
+        let currentNavAlpha = self.navBar?.alpha ?? 0.0
+        self.navBar?.alpha = currentNavAlpha > 0.5 ? 0.0 : 1.0
     }
     
     @objc

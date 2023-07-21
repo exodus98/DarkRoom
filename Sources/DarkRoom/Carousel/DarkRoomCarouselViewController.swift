@@ -285,7 +285,10 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDataSource {
             index: index,
             imageURL: data.imageUrl,
             imagePlaceholder: data.imagePlaceholder,
-            imageLoader: imageLoader
+            imageLoader: imageLoader,
+            nickname: userInfo.nickname,
+            timeString: userInfo.timeString,
+            imageUrl: userInfo.imageUrl
         )
     }
     

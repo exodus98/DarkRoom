@@ -11,18 +11,26 @@ class MediaUserInfoView: UIView {
     // MARK: - Views
     
     private let stackview = UIStackView()
+    private let type: Int
     private var userInfo: DarkRoomMediaUserInfo?
     private var imageLoader: DarkRoomImageLoader?
     // MARK: - LifeCycle
     
-    internal init(userInfo: DarkRoomMediaUserInfo, imageLoader: DarkRoomImageLoader) {
-        super.init(frame: .zero)
+    // type: Int 0 : SingleVideo, 10 : SingleImage, 11 : MultiImage
+    private let singleVideo = 0
+    private let singleImage = 10
+    private let multiImage = 11
+    
+    internal init(userInfo: DarkRoomMediaUserInfo, imageLoader: DarkRoomImageLoader, type: Int) {
         self.userInfo = userInfo
         self.imageLoader = imageLoader
+        self.type = type
+        super.init(frame: .zero)
         prepare()
     }
 
     internal required init?(coder: NSCoder) {
+        self.type = singleImage
         super.init(coder: coder)
         prepare()
     }
@@ -70,9 +78,19 @@ class MediaUserInfoView: UIView {
         verifiedIcon.translatesAutoresizingMaskIntoConstraints = false
         verifiedIcon.image = UIImage(named: "icon_verified_badge_small")
         
+        var iconImage: UIImage?
+        switch type {
+        case singleVideo:
+            iconImage = UIImage(named: "icon_video_photo_18px")
+        case multiImage:
+            iconImage = UIImage(named: "icon_multi-select_photo_18px")
+        default:
+            break
+        }
+        
         var mediaIcon = UIImageView(frame: CGRect(x: 0, y: 0, width: 18, height: 18))
         mediaIcon.translatesAutoresizingMaskIntoConstraints = false
-        mediaIcon.image = UIImage(named: "icon_video_photo_18px")
+        mediaIcon.image = iconImage
         
         var time = UILabel()
         time.translatesAutoresizingMaskIntoConstraints = false

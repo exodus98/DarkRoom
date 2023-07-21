@@ -155,7 +155,7 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         self.isFirstLoad = true
         self.isViewOnScreen = false
         self.userInfo = DarkRoomMediaUserInfo(nickname: nickname, timeString: timeString, imageUrl: imageUrl)
-        self.infoView = MediaUserInfoView(userInfo: self.userInfo, imageLoader: imageLoader)
+        self.infoView = MediaUserInfoView(userInfo: self.userInfo, imageLoader: imageLoader, type: 0)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -573,6 +573,7 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
             } else {
                 strongSelf.infoViewBottomLayout.constant = isShowingControls ? 200 : 0
             }
+            strongSelf.infoView?.isHidden = isShowingControls
             strongSelf.view.layoutIfNeeded()
             strongSelf.navBar?.alpha = isShowingControls ? 0.0 : 1.0
         }
