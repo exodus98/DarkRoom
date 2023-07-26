@@ -65,7 +65,8 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     public override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
     internal private(set) lazy var navBar: UINavigationBar = {
-        let navBar = UINavigationBar(frame: .zero)
+        let statusBarHeight = view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 44 + statusBarHeight))
         navBar.overrideUserInterfaceStyle = .dark
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -74,7 +75,6 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         navBar.standardAppearance = appearance
         navBar.scrollEdgeAppearance = appearance
         navBar.compactAppearance = appearance
-        navBar.isTranslucent = true
         navBar.barTintColor = .clear
         navBar.setBackgroundImage(UIImage(), for: .default)
         navBar.shadowImage = UIImage()
