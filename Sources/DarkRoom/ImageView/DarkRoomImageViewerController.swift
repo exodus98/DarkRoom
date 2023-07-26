@@ -87,6 +87,20 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
         }
     }
     
+    private var safeAreaTopPadding: CGFloat {
+        let window = UIApplication.shared.windows.first
+        let topPadding = window?.safeAreaInsets.top ?? 20
+        
+        return topPadding
+    }
+    
+    private var safeAreaBottomPadding: CGFloat {
+        let window = UIApplication.shared.windows.first
+        let bottomPadding = window?.safeAreaInsets.bottom ?? 34
+        
+        return bottomPadding
+    }
+    
     // MARK: - LifeCycle
 
     internal init(

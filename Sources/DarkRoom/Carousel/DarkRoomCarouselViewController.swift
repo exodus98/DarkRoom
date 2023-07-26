@@ -79,6 +79,8 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         navBar.setBackgroundImage(UIImage(), for: .default)
         navBar.shadowImage = UIImage()
         navBar.alpha = 0.5
+        navBar.prefersLargeTitles = true
+        navBar.isTranslucent = false
         return navBar
     }()
     
