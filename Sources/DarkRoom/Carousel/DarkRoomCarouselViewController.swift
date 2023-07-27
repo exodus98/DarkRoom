@@ -79,8 +79,8 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         navBar.setBackgroundImage(UIImage(), for: .default)
         navBar.shadowImage = UIImage()
         navBar.alpha = 0.5
-        navBar.prefersLargeTitles = true
-        navBar.isTranslucent = false
+//        navBar.prefersLargeTitles = true
+        navBar.isTranslucent = true
         return navBar
     }()
     
@@ -203,9 +203,17 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         guard let mediaDatasource = mediaDatasource else { return }
         
         if case .video(let data) = mediaDatasource.assetData(at: initialIndex) {
+            guard data.videoUrl.absoluteString != "nil" else {
+                self.failLoadMedia()
+                return
+            }
             let initialVC = composePlayerViewController(with: initialIndex, data: data, imageLoader: imageLoader)
             setViewControllers([initialVC], direction: .forward, animated: true)
         } else if case .image(let data) = mediaDatasource.assetData(at: initialIndex) {
+            guard data.imageUrl.absoluteString != "nil" else {
+                self.failLoadMedia()
+                return
+            }
             let initialVC = composeImageViewerController(with: initialIndex, data: data, imageLoader: imageLoader)
             setViewControllers([initialVC], direction: .forward, animated: true)
         }
@@ -253,8 +261,16 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDataSource {
         let imageLoader = self.imageLoader
 
         if case .video(let data) = mediaDatasource.assetData(at: newIndex) {
+            guard data.videoUrl.absoluteString != "nil" else {
+                self.failLoadMedia()
+                return nil
+            }
             return composePlayerViewController(with: newIndex, data: data, imageLoader: imageLoader)
         } else if case .image(let data) = mediaDatasource.assetData(at: newIndex) {
+            guard data.imageUrl.absoluteString != "nil" else {
+                self.failLoadMedia()
+                return nil
+            }
             return composeImageViewerController(with: newIndex, data: data, imageLoader: imageLoader)
         } else {
             return nil
@@ -274,8 +290,16 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDataSource {
         let imageLoader = self.imageLoader
 
         if case .video(let data) = mediaDatasource.assetData(at: newIndex) {
+            guard data.videoUrl.absoluteString != "nil" else {
+                self.failLoadMedia()
+                return nil
+            }
             return composePlayerViewController(with: newIndex, data: data, imageLoader: imageLoader)
         } else if case .image(let data) = mediaDatasource.assetData(at: newIndex) {
+            guard data.imageUrl.absoluteString != "nil" else {
+                self.failLoadMedia()
+                return nil
+            }
             return composeImageViewerController(with: newIndex, data: data, imageLoader: imageLoader)
         } else {
             return nil
@@ -312,6 +336,19 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDataSource {
 
         player.load(media: mediaItem, autostart: true, position: 0)
         return initialVC
+    }
+    
+    private func failLoadMedia() {
+        // UIAlertController 인스턴스 생성
+        let alertController = UIAlertController(title: "", message: NSLocalizedString("fail_load_image", comment: "이미지 로드 실패"), preferredStyle: .alert)
+        
+        // 확인 버튼 추가, handler 클로저를 이용하여 동작 설정
+        alertController.addAction(UIAlertAction(title: NSLocalizedString("confirm", comment: "확인"), style: .default, handler: { (_) in
+            self.dismissCarousel()
+        }))
+        
+        // 팝업 보이기
+        present(alertController, animated: true, completion: nil)
     }
 }
 
