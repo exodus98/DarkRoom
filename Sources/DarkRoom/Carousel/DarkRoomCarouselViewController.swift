@@ -64,23 +64,32 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     
     public override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
-    internal private(set) lazy var navBar: UINavigationBar = {
-        let statusBarHeight = view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
-        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 44 + statusBarHeight))
-        navBar.overrideUserInterfaceStyle = .dark
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .black
-        appearance.shadowColor = .clear
-        navBar.standardAppearance = appearance
-        navBar.scrollEdgeAppearance = appearance
-        navBar.compactAppearance = appearance
-        navBar.barTintColor = .clear
-        navBar.setBackgroundImage(UIImage(), for: .default)
-        navBar.shadowImage = UIImage()
+    internal private(set) lazy var navBar: UIView = {
+        var statusBarHeight: CGFloat = 0.0
+        if #available(iOS 13.0, *) {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                statusBarHeight = windowScene.statusBarManager?.statusBarFrame.height ?? 0.0
+            }
+        } else {
+            statusBarHeight = UIApplication.shared.statusBarFrame.height
+        }
+            
+        let navBar = UIView(frame: CGRect(x: 0, y: statusBarHeight, width: view.bounds.width, height: 48))
+        navBar.backgroundColor = .black
+//        let appearance = UINavigationBarAppearance()
+//        appearance.configureWithOpaqueBackground()
+//        appearance.backgroundColor = .black
+//        appearance.shadowColor = .clear
+//        navBar.standardAppearance = appearance
+//        navBar.scrollEdgeAppearance = appearance
+//        navBar.compactAppearance = appearance
+//        navBar.barTintColor = .clear
+//        navBar.setBackgroundImage(UIImage(), for: .default)
+//        navBar.shadowImage = UIImage()
         navBar.alpha = 0.5
 //        navBar.prefersLargeTitles = true
-        navBar.isTranslucent = true
+//        navBar.isTranslucent = true
+        self.view.addSubview(navBar)
         return navBar
     }()
     
@@ -101,6 +110,9 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     
     // MARK: UserInfo
     private let userInfo: DarkRoomMediaUserInfo
+    
+    var infoView: MediaUserInfoView?
+    private var infoViewBottomLayout: NSLayoutConstraint!
     
     // MARK: - LifeCycle
     
@@ -145,6 +157,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         super.viewDidLoad()
         prepareBackgroundView()
         prepareNavBar()
+        prepareBottomInfoView()
         applyOptions()
         setupPagingController()
         setupInitialDataSource()
@@ -153,17 +166,17 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     // MARK: - Prepare Views
     
     private func prepareNavBar() {
-        let closeBarButton = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 40, height: 40)))
+        let closeBarButton = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 48, height: 48)))
         closeBarButton.backgroundColor = .black.withAlphaComponent(0.5)
         closeBarButton.layer.cornerRadius = closeBarButton.bounds.width/2
         closeBarButton.setImage(DarkRoomAsset.Images.close.image, for: .normal)
         closeBarButton.tintColor = .white
         closeBarButton.addTarget(self, action: #selector(self.dismissCarousel), for: .primaryActionTriggered)
         
-        navItem.leftBarButtonItem = UIBarButtonItem(customView: closeBarButton)
+        navBar.addSubview(closeBarButton)
         navBar.alpha = 1.0
-        navBar.items = [navItem]
-        navBar.insert(to: view)
+//        navBar.items = [navItem]
+//        navBar.insert(to: view)
     }
     
     private func prepareBackgroundView() {
@@ -171,6 +184,25 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         view.addSubview(backgroundView)
         backgroundView.bindFrameToSuperview()
         view.sendSubviewToBack(backgroundView)
+    }
+    
+    private func prepareBottomInfoView() {
+        infoView = MediaUserInfoView(userInfo: self.userInfo, imageLoader: imageLoader, type: 10)
+        
+        guard let infoView else { return }
+        infoView.translatesAutoresizingMaskIntoConstraints = false
+        infoView.isHidden = false
+        view.addSubview(infoView)
+
+        infoViewBottomLayout = infoView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0)
+        NSLayoutConstraint.activate([
+            infoView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
+            infoView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
+            infoViewBottomLayout,
+            infoView.heightAnchor.constraint(equalToConstant: 72)
+        ])
+        
+        view.bringSubviewToFront(infoView)
     }
     
     private func applyOptions() {
@@ -311,10 +343,7 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDataSource {
             index: index,
             imageURL: data.imageUrl,
             imagePlaceholder: data.imagePlaceholder,
-            imageLoader: imageLoader,
-            nickname: userInfo.nickname,
-            timeString: userInfo.timeString,
-            imageUrl: userInfo.imageUrl
+            imageLoader: imageLoader
         )
     }
     
@@ -328,10 +357,7 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDataSource {
             imagePlaceholder: data.imagePlaceholder,
             imageLoader: imageLoader,
             player: player,
-            configuration: configuration.videoPlayerControllerConfiguration,
-            nickname: userInfo.nickname,
-            timeString: userInfo.timeString,
-            imageUrl: userInfo.imageUrl
+            configuration: configuration.videoPlayerControllerConfiguration
         )
 
         player.load(media: mediaItem, autostart: true, position: 0)

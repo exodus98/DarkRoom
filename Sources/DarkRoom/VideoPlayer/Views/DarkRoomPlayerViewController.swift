@@ -44,9 +44,14 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         return parent.backgroundView
     }
     
-    private var navBar: UINavigationBar? {
+    private var navBar: UIView? {
         guard let parent = parent as? DarkRoomCarouselViewController else { return nil }
         return parent.navBar
+    }
+    
+    internal var infoView: MediaUserInfoView? {
+        guard let parent = parent as? DarkRoomCarouselViewController else { return nil }
+        return parent.infoView
     }
     
     // MARK: - Views
@@ -73,8 +78,6 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
     private var controlViewBottomLayout: NSLayoutConstraint!
     
     private var infoViewBottomLayout: NSLayoutConstraint!
-    
-    private var infoView: MediaUserInfoView?
     
     // MARK: - DataSources
     
@@ -124,8 +127,6 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
     
     private var isViewOnScreen: Bool
     
-    private let userInfo: DarkRoomMediaUserInfo
-    
     // MARK: - LifeCycle
 
     internal init(
@@ -135,10 +136,7 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         imagePlaceholder: UIImage,
         imageLoader: DarkRoomImageLoader,
         player: DarkRoomPlayerExposable? = nil,
-        configuration: DarkRoomVideoPlayerControllerConfiguration,
-        nickname: String = "",
-        timeString: String = "",
-        imageUrl: String = ""
+        configuration: DarkRoomVideoPlayerControllerConfiguration
     ) {
         self.index = index
         self.player = player != nil ? player! : DarkRoomPlayer()
@@ -154,8 +152,6 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         self.videoContentMode = .resizeAspect
         self.isFirstLoad = true
         self.isViewOnScreen = false
-        self.userInfo = DarkRoomMediaUserInfo(nickname: nickname, timeString: timeString, imageUrl: imageUrl)
-        self.infoView = MediaUserInfoView(userInfo: self.userInfo, imageLoader: imageLoader, type: 0)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -172,7 +168,6 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         self.additionalSafeAreaInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         prepareView()
         prepareImages()
-        prepareInfoView()
         prepareControlView()
         prepareImageView()
         prepareVideoImageOverlayView()
@@ -293,30 +288,12 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         guard let infoView else { return }
 
         controlViewBottomLayout = controlView.bottomAnchor.constraint(equalTo: infoView.topAnchor, constant: 0)
-        if userInfo.nickname.isEmpty {
-            controlViewBottomLayout = controlView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0)
-        }
         
         NSLayoutConstraint.activate([
             controlView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
             controlView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
             controlViewBottomLayout,
             controlView.heightAnchor.constraint(equalToConstant: 72)
-        ])
-    }
-    
-    private func prepareInfoView() {
-        guard let infoView else { return }
-        infoView.translatesAutoresizingMaskIntoConstraints = false
-        infoView.isHidden = !showsPlaybackControls
-        view.addSubview(infoView)
-
-        infoViewBottomLayout = infoView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0)
-        NSLayoutConstraint.activate([
-            infoView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
-            infoView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
-            infoViewBottomLayout,
-            infoView.heightAnchor.constraint(equalToConstant: 72)
         ])
     }
     
@@ -568,11 +545,7 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
     private func changeControlsVisibilty(with isShowingControls: Bool) {
         UIView.animate(withDuration: 0.235, delay: 0, options: [.curveEaseInOut]) { [weak self] in
             guard let strongSelf = self else { return }
-            if strongSelf.userInfo.nickname.isEmpty {
-                strongSelf.controlViewBottomLayout.constant = isShowingControls ? 100 : 0
-            } else {
-                strongSelf.infoViewBottomLayout.constant = isShowingControls ? 200 : 0
-            }
+            strongSelf.infoViewBottomLayout.constant = isShowingControls ? 200 : 0
             strongSelf.infoView?.isHidden = isShowingControls
             strongSelf.view.layoutIfNeeded()
             strongSelf.navBar?.alpha = isShowingControls ? 0.0 : 1.0
