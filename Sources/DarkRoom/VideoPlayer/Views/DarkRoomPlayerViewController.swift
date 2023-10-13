@@ -286,13 +286,13 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         view.addSubview(controlView)
         
         guard let infoView else { return }
-        self.view.addSubview(infoView)
-        controlViewBottomLayout = controlView.bottomAnchor.constraint(equalTo: infoView.topAnchor, constant: 0)
+//        self.view.addSubview(infoView)
+//        controlViewBottomLayout = controlView.bottomAnchor.constraint(equalTo: infoView.topAnchor, constant: 0)
         
         NSLayoutConstraint.activate([
             controlView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
             controlView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
-            controlViewBottomLayout,
+//            controlViewBottomLayout,
             controlView.heightAnchor.constraint(equalToConstant: 72)
         ])
     }
