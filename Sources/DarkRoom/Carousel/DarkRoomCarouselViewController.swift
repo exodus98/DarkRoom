@@ -26,6 +26,14 @@
 
 import UIKit
 
+private enum DarkRoomMediaType: Int {
+    case singleImage = 1
+    case multiImage = 2
+    case singleVideo = 3
+    case multiVideo = 4
+    case mixedMedia = 5
+}
+
 public struct DarkRoomMediaUserInfo {
     let nickname: String
     let timeString: String
@@ -76,19 +84,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
             
         let navBar = UIView(frame: CGRect(x: 0, y: statusBarHeight, width: view.bounds.width, height: 48))
         navBar.backgroundColor = .black
-//        let appearance = UINavigationBarAppearance()
-//        appearance.configureWithOpaqueBackground()
-//        appearance.backgroundColor = .black
-//        appearance.shadowColor = .clear
-//        navBar.standardAppearance = appearance
-//        navBar.scrollEdgeAppearance = appearance
-//        navBar.compactAppearance = appearance
-//        navBar.barTintColor = .clear
-//        navBar.setBackgroundImage(UIImage(), for: .default)
-//        navBar.shadowImage = UIImage()
         navBar.alpha = 0.5
-//        navBar.prefersLargeTitles = true
-//        navBar.isTranslucent = true
         self.view.addSubview(navBar)
         return navBar
     }()
@@ -110,8 +106,10 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     
     // MARK: UserInfo
     private let userInfo: DarkRoomMediaUserInfo
+    private let type: Int
     
     var infoView: MediaUserInfoView?
+    var previewView: MediaPreviewView?
     private var infoViewBottomLayout: NSLayoutConstraint!
     
     // MARK: - LifeCycle
@@ -122,6 +120,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         imageLoader: DarkRoomImageLoader,
         initialIndex: Int = 0,
         configuration: DarkRoomCarouselConfiguration = DarkRoomCarouselDefaultConfiguration(),
+        type: Int,
         nickname: String = "",
         timeString: String = "",
         imageUrl: String = ""
@@ -133,6 +132,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         self.imageLoader = imageLoader
         self.configuration = configuration
         self.userInfo = DarkRoomMediaUserInfo(nickname: nickname, timeString: timeString, imageUrl: imageUrl)
+        self.type = type
         let pageOptions = [UIPageViewController.OptionsKey.interPageSpacing: 20]
 
         super.init(
@@ -158,6 +158,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         prepareBackgroundView()
         prepareNavBar()
         prepareBottomInfoView()
+        preparePreviewView()
         applyOptions()
         setupPagingController()
         setupInitialDataSource()
@@ -187,7 +188,7 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     }
     
     private func prepareBottomInfoView() {
-        infoView = MediaUserInfoView(userInfo: self.userInfo, imageLoader: imageLoader, type: 10)
+        infoView = MediaUserInfoView(userInfo: self.userInfo, imageLoader: imageLoader, type: self.type)
         
         guard let infoView else { return }
         infoView.translatesAutoresizingMaskIntoConstraints = false
@@ -203,6 +204,38 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
         ])
         
         view.bringSubviewToFront(infoView)
+    }
+    
+    private func preparePreviewView() {
+        guard let mediaType = DarkRoomMediaType(rawValue: self.type) else { return }
+        switch mediaType {
+        case .multiImage:
+            break
+        default:
+            return
+        }
+        
+        previewView = MediaPreviewView()
+        
+        guard let previewView else { return }
+        view.addSubview(previewView)
+        
+        previewView.collectionview.delegate = self
+        previewView.collectionview.dataSource = self
+        
+        previewView.translatesAutoresizingMaskIntoConstraints = false
+        previewView.isHidden = false
+        view.addSubview(previewView)
+        previewView.scrollToItem(index: 0)
+
+        NSLayoutConstraint.activate([
+            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
+            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
+            previewView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -72),
+            previewView.heightAnchor.constraint(equalToConstant: 72)
+        ])
+        
+        view.bringSubviewToFront(previewView)
     }
     
     private func applyOptions() {
@@ -273,6 +306,80 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     private func didTapRightNavBarItem(_ sender: UIBarButtonItem) {
         guard let firstVC = viewControllers?.first as? DarkRoomMediaController else { return }
         mediaDelegate?.carousel(didTapedBarButtonItem: sender, index: firstVC.index)
+    }
+}
+
+extension DarkRoomCarouselViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        guard let mediaDatasource = mediaDatasource else { return 0 }
+        return mediaDatasource.numberOfAssets()
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let emptyCell = UICollectionViewCell()
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PreviewCell", for: indexPath) as? PreviewCell,
+              let mediaDatasource = mediaDatasource else { return emptyCell }
+        
+        let index = indexPath.row
+        let borderColor = index == displayedIndex ? UIColor.white.cgColor : UIColor.clear.cgColor
+        
+        if case .video(let data) = mediaDatasource.assetData(at: index) {
+            guard data.videoUrl.absoluteString != "nil" else { return emptyCell }
+            
+            self.imageLoader.loadImage(data.videoImageUrl, placeholder: nil, imageView: cell.imageView) { image in
+                cell.imageView.image = image
+            }
+            
+            cell.updateBorderColor(color: borderColor)
+            
+            return cell
+        } else if case .image(let data) = mediaDatasource.assetData(at: index) {
+            guard data.imageUrl.absoluteString != "nil" else { return emptyCell }
+            
+            self.imageLoader.loadImage(data.imageUrl, placeholder: nil, imageView: cell.imageView) { image in
+                cell.imageView.image = image
+            }
+            
+            cell.updateBorderColor(color: borderColor)
+            
+            return cell
+        } else {
+            return emptyCell
+        }
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        DispatchQueue.main.async {
+            guard let mediaDatasource = self.mediaDatasource else { return }
+            let oldIndex = self.displayedIndex
+            let newIndex = indexPath.row
+            guard oldIndex != newIndex else { return }
+            
+            let direction: UIPageViewController.NavigationDirection = newIndex > oldIndex ? .forward : .reverse
+            
+            let index = indexPath.row
+            if case .video(let data) = mediaDatasource.assetData(at: newIndex) {
+                let initialVC = self.composePlayerViewController(with: newIndex, data: data, imageLoader: self.imageLoader)
+                self.setViewControllers([initialVC], direction: direction, animated: true)
+            } else if case .image(let data) = mediaDatasource.assetData(at: newIndex) {
+                let initialVC = self.composeImageViewerController(with: newIndex, data: data, imageLoader: self.imageLoader)
+                self.setViewControllers([initialVC], direction: direction, animated: true)
+            }
+            
+            self.displayedIndex = newIndex
+            
+            self.previewView?.scrollToItem(index: index)
+            self.previewView?.collectionview.reloadData()
+        }
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        let leftRightInset = (collectionView.frame.width / 2) - CGFloat(20)
+        return UIEdgeInsets(top: 0, left: leftRightInset, bottom: 0, right: leftRightInset)
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 40, height: 40)
     }
 }
 
@@ -391,6 +498,9 @@ extension DarkRoomCarouselViewController: UIPageViewControllerDelegate {
         if completed, let presentedViewController = self.viewControllers?.first as? DarkRoomMediaController {
             self.displayedIndex = presentedViewController.index
         }
+        guard let previewView else { return }
+        previewView.scrollToItem(index: self.displayedIndex)
+        previewView.collectionview.reloadData()
     }
 }
 

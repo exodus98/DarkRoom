@@ -54,6 +54,11 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
         return parent.infoView
     }
     
+    internal var previewView: MediaPreviewView? {
+        guard let parent = parent as? DarkRoomCarouselViewController else { return nil }
+        return parent.previewView
+    }
+    
     private var top: NSLayoutConstraint!
     private var leading: NSLayoutConstraint!
     private var trailing: NSLayoutConstraint!
@@ -283,6 +288,7 @@ internal final class DarkRoomImageViewerController: UIViewController, UIGestureR
         let willAlpha = currentNavAlpha > 0.5 ? 0.0 : 1.0
         self.navBar?.alpha = willAlpha
         self.infoView?.alpha = willAlpha
+        self.previewView?.alpha = willAlpha
     }
     
     @objc

@@ -285,16 +285,18 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         controlView.isHidden = !showsPlaybackControls
         view.addSubview(controlView)
         
-        guard let infoView else { return }
-//        self.view.addSubview(infoView)
-//        controlViewBottomLayout = controlView.bottomAnchor.constraint(equalTo: infoView.topAnchor, constant: 0)
-        
-        NSLayoutConstraint.activate([
-            controlView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
-            controlView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
-//            controlViewBottomLayout,
-            controlView.heightAnchor.constraint(equalToConstant: 72)
-        ])
+        DispatchQueue.main.async {
+            guard let infoView = self.infoView else { return }
+            let infoviewHeight = infoView.frame.size.height * -1
+            self.controlViewBottomLayout = self.controlView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: infoviewHeight)
+            
+            NSLayoutConstraint.activate([
+                self.controlView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 0),
+                self.controlView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: 0),
+                self.controlViewBottomLayout,
+                self.controlView.heightAnchor.constraint(equalToConstant: 72)
+            ])
+        }
     }
     
     private func prepareActivityIndicator() {
@@ -545,7 +547,7 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
     private func changeControlsVisibilty(with isShowingControls: Bool) {
         UIView.animate(withDuration: 0.235, delay: 0, options: [.curveEaseInOut]) { [weak self] in
             guard let strongSelf = self else { return }
-            strongSelf.infoViewBottomLayout.constant = isShowingControls ? 200 : 0
+            strongSelf.controlView.isHidden = isShowingControls
             strongSelf.infoView?.isHidden = isShowingControls
             strongSelf.view.layoutIfNeeded()
             strongSelf.navBar?.alpha = isShowingControls ? 0.0 : 1.0
