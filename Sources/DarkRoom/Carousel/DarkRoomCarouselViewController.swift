@@ -167,17 +167,16 @@ public final class DarkRoomCarouselViewController: UIPageViewController {
     // MARK: - Prepare Views
     
     private func prepareNavBar() {
+        let closeImage = UIImage(named: "btn_back_w_24px") ?? DarkRoomAsset.Images.close.image
         let closeBarButton = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 48, height: 48)))
         closeBarButton.backgroundColor = .black.withAlphaComponent(0.5)
         closeBarButton.layer.cornerRadius = closeBarButton.bounds.width/2
-        closeBarButton.setImage(DarkRoomAsset.Images.close.image, for: .normal)
+        closeBarButton.setImage(closeImage, for: .normal)
         closeBarButton.tintColor = .white
         closeBarButton.addTarget(self, action: #selector(self.dismissCarousel), for: .primaryActionTriggered)
         
         navBar.addSubview(closeBarButton)
         navBar.alpha = 1.0
-//        navBar.items = [navItem]
-//        navBar.insert(to: view)
     }
     
     private func prepareBackgroundView() {

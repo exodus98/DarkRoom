@@ -168,13 +168,14 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         self.additionalSafeAreaInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         prepareView()
         prepareImages()
-        prepareControlView()
         prepareImageView()
         prepareVideoImageOverlayView()
         prepareVideoView()
         prepareActivityIndicator()
-        guard let infoView else { return }
-        view.bringSubviewToFront(infoView)
+        if let infoView {
+            view.bringSubviewToFront(infoView)
+        }
+        prepareControlView()
         setupBindigs()
         addGestureRecognizers()
         view.bringSubviewToFront(controlView)
@@ -287,7 +288,8 @@ internal final class DarkRoomPlayerViewController: UIViewController, DarkRoomMed
         
         DispatchQueue.main.async {
             guard let infoView = self.infoView else { return }
-            let infoviewHeight = infoView.frame.size.height * -1
+            var infoviewHeight = infoView.frame.size.height
+            infoviewHeight = infoviewHeight == 0 ? -72 : (infoviewHeight * -1)
             self.controlViewBottomLayout = self.controlView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: infoviewHeight)
             
             NSLayoutConstraint.activate([
